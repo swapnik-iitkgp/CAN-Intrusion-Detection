@@ -73,7 +73,7 @@ The script prints a quick class summary and an estimated fuzzy‑attack start:
 ```
 ✓ saved .../otids_hyper_dataset.parquet → 15 226 rows, 4.8 MB
 DoS rows        : 62
-Fuzzy rows      : 3 134
+Fuzzy rows      : 3,134
 Impersonation rows: 306
 Estimated FUZZY attack starts at t ≈ 253.0 s
 ```
