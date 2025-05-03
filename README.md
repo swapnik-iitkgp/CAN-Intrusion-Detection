@@ -128,5 +128,6 @@ mlp_dense,0.992,0.979,0.971,0.985,0.981
 ├─ models.py
 ├─ get_hyper_period.py       # (optional)
 ├─ get_periodicities.py      # (optional)
-└─ new_obfuscation.c         # applying obfuscation
+└─ Hide-n-Seek/
+    └─ new_obfuscation.c         # applying obfuscation
 ```
