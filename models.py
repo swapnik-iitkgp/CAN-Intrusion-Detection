@@ -5,9 +5,13 @@
 import os, warnings
 import pandas as pd, numpy as np
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
@@ -75,30 +79,47 @@ def train_test(df: pd.DataFrame, test_size: float = .20, random_state: int = 42)
 # ============================================================================#
 #                               REPORT UTILS                                  #
 # ============================================================================#
-def report(model, X_test, y_test, name: str, score_file: str = "scores.csv"):
-    """Print & append one CSV line with accuracy + F1s."""
+def plot_confusion(y_true, y_pred, labels):
+    cm = confusion_matrix(y_true, y_pred)
+    fig, ax = plt.subplots(figsize=(5,4))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+                xticklabels=labels, yticklabels=labels, ax=ax)
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("Actual")
+    plt.tight_layout()
+    plt.show()
+
+def report(model, X_test, y_test, name, score_file="scores.csv", show_confusion=True):
+    # 1) predict
     y_pred = model.predict(X_test)
-    if y_pred.ndim == 2:                 # soft‑max probabilities → argmax
+    if y_pred.ndim == 2:                # Keras soft-max → take arg-max
         y_pred = np.argmax(y_pred, axis=1)
 
+    # 2) classification report (unchanged)
     rep = classification_report(
-        y_test, y_pred,
-        target_names=["normal", "dos", "fuzzy", "imp"],
-        output_dict=True,
-        zero_division=0)
+            y_test, y_pred,
+            target_names=["normal","dos","fuzzy","imp"],
+            output_dict=True)
 
-    line = (f"{name},{rep['accuracy']:.3f},{rep['macro avg']['f1-score']:.3f},"
-            f"{rep['dos']['f1-score']:.3f},{rep['fuzzy']['f1-score']:.3f},"
-            f"{rep['imp']['f1-score']:.3f}\n")
-
+    line = (
+        f"{name},{rep['accuracy']:.3f},{rep['macro avg']['f1-score']:.3f},"
+        f"{rep['dos']['f1-score']:.3f},{rep['fuzzy']['f1-score']:.3f},"
+        f"{rep['imp']['f1-score']:.3f}\n"
+    )
     need_header = (not os.path.exists(score_file)
                    or os.stat(score_file).st_size == 0)
-    with open(score_file, "a", newline="") as f:
+    with open(score_file, "a") as f:
         if need_header:
             f.write("model,accuracy,macro_F1,F1_dos,F1_fuzzy,F1_imp\n")
         f.write(line)
-
     print(line, end="")
+
+    # 3) confusion matrix
+    if show_confusion:
+        cm = confusion_matrix(y_test, y_pred)
+        print("\nConfusion matrix (rows=truth, cols=predicted):")
+        print(cm)
+        plot_confusion(y_test, y_pred, ["normal","dos","fuzzy","imp"])
 
 
 # ============================================================================#
